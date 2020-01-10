@@ -1,0 +1,186 @@
+from selenium import webdriver
+from selenium.webdriver.common.keys import Keys
+from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
+from selenium.common.exceptions import ElementClickInterceptedException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+from selenium.webdriver.common.action_chains import ActionChains
+from selenium.common.exceptions import NoSuchElementException
+from bs4 import BeautifulSoup
+import pandas as pd
+import re
+
+options = Options()
+options.add_argument("--headless")
+options.add_argument("--disable-notifications")
+
+link_path = [
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(1) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(2) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(3) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(4) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(5) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(6) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(7) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(8) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(9) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(10) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(11) > a'
+]
+
+lenvar = len(link_path)
+
+table = [ #all css selectors
+	#'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(1)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(2)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(3)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(4)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(5)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(1)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(5) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(2)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(5) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(3)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(5) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(4)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(5) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(5)',
+	'#app > div > div:nth-child(2) > div > main > div:nth-child(5) > section > div > div > div > div:nth-child(1) > div.tab-group > h3'
+]
+
+lenvar_table = len(table)
+table_values = []
+
+
+
+CongDistList = []
+CountryList = []
+StateList = []
+Df_list = []
+
+
+for i in range(0,lenvar):
+
+	#moves through the main webpage
+
+	driver = webdriver.Chrome(executable_path = '/Users/shehzadcharania/anaconda3/bin/chromedriver', options = options)
+	driver.create_options()
+	driver.get("https://riskfinder.climatecentral.org/congressional-district")
+	driver.execute_script("window.scrollTo(0, 4500)")
+	driver.implicitly_wait(10)
+	continue_link = driver.find_element_by_css_selector(str(link_path[i])) 
+	continue_link.click()
+
+	#gets the locational data
+	driver.implicitly_wait(10)
+	CongDist = str(driver.find_element_by_css_selector('#app > div > div:nth-child(2) > div > main > div.band.highlight.fixed > section > h1 > span > span:nth-child(1) > span:nth-child(1)').text)
+	State = str(driver.find_element_by_css_selector('#app > div > div:nth-child(2) > div > main > div.band.highlight.fixed > section > h1 > span > span:nth-child(2) > span:nth-child(1)').text)
+	Country = str(driver.find_element_by_css_selector('#app > div > div:nth-child(2) > div > main > div.band.highlight.fixed > section > h1 > span > span:nth-child(3)').text)
+	driver.implicitly_wait(10)
+	#print(CongDist) #testing to see if locational data works
+	#builds the locational data lists
+
+	CongDistList.append(CongDist)
+	StateList.append(State)
+	CountryList.append(Country)
+	#driver.quit()
+
+	#quits the cookies popup
+	iframe = driver.find_element_by_class_name('ub-emb-iframe')
+	driver.switch_to.frame(iframe)
+	driver.implicitly_wait(10)
+	cookies = driver.find_element_by_xpath('//*[@id="lp-pom-button-28"]')
+	cookies.click()
+	driver.switch_to.default_content()
+
+	#This section tests to see which css selectors will be used in scraping the table data
+
+	TrueTable = []
+	FalseTable = []
+	for a in range(0, lenvar_table):
+		try:
+			driver.find_element_by_css_selector(str(table[a]))
+			#print(driver.find_element_by_css_selector(str(table[a])).text)
+			#table.append('True')
+			TrueTable.append(table[a])
+		except NoSuchElementException:
+			pass
+	lenvar_TrueTable = len(TrueTable)
+
+	testerxpathholder = []
+
+	try:
+		driver.find_element_by_xpath('/html/body/div[2]/div/div[2]/div/main/div[6]/section/div/div/div/div[2]/div[1]/div/div/div[1]/div/table/tbody/tr[1]/td[1]')
+		testerxpathholder.append('/html/body/div[2]/div/div[2]/div/main/div[6]/section/div/div/div/div[2]/div[1]/div/div/div[1]/div/table/tbody/tr[1]/td[1]')
+	except NoSuchElementException:
+		pass
+
+	try:
+		driver.find_element_by_xpath('/html/body/div[2]/div/div[2]/div/main/div[5]/section/div/div/div/div[2]/div[1]/div/div/div[1]/div/table/tbody/tr[1]/td[1]')
+		testerxpathholder.append('/html/body/div[2]/div/div[2]/div/main/div[5]/section/div/div/div/div[2]/div[1]/div/div/div[1]/div/table/tbody/tr[1]/td[1]')
+	except NoSuchElementException:
+		pass
+
+	tablesvalsholder = []
+
+	try:
+		driver.find_element_by_xpath('/html/body/div[2]/div/div[2]/div/main/div[5]/section/div/div/div/div[2]/div[1]/div/div/div[1]/div/table/tbody')
+		tablesvalsholder.append('/html/body/div[2]/div/div[2]/div/main/div[5]/section/div/div/div/div[2]/div[1]/div/div/div[1]/div/table/tbody')
+	except NoSuchElementException:
+		pass
+
+	try:
+		driver.find_element_by_xpath('/html/body/div[2]/div/div[2]/div/main/div[6]/section/div/div/div/div[2]/div[1]/div/div/div[1]/div/table/tbody')
+		tablesvalsholder.append('/html/body/div[2]/div/div[2]/div/main/div[6]/section/div/div/div/div[2]/div[1]/div/div/div[1]/div/table/tbody')
+	except NoSuchElementException:
+		pass
+
+	for a in range(0, lenvar_TrueTable):
+		driver.implicitly_wait(10)
+		action=ActionChains(driver)
+		driver.implicitly_wait(10)
+		next_tab = driver.find_element_by_css_selector((TrueTable[a]))
+		driver.implicitly_wait(10)
+		testerxpath = driver.find_element_by_xpath(testerxpathholder[0])
+		ActionChains(driver).move_to_element_with_offset(testerxpath,0,0).perform()
+		tablesvals = str(driver.find_element_by_xpath(tablesvalsholder[0]).text)
+		#print(tablesvals)
+		tablesvals = tablesvals.replace(',','')
+		#print(tablesvals)
+		#print(type(tablesvals))
+	
+		driver.implicitly_wait(10)
+
+
+		#regex test
+		destroyspaces = tablesvals.splitlines()
+		#print(destroyspaces) #returns a list
+		#print(type(destroyspaces))
+		tags = re.sub('\d+','', str(destroyspaces))
+		numbers = re.findall('\d*\.?\d+', str(destroyspaces))
+		tags = tags[1:-1]
+		new_new_tags = tags.replace("'","")
+		new_tags = new_new_tags.split(", ")
+		#values = ([j for i  in zip(new_tags, numbers) for j in i])
+		#print(new_tags)
+		new_tags.append(CongDist)
+		numbers.append(State)
+		try:
+			df = pd.DataFrame(numbers)
+			df.index = new_tags
+			Df_list.append(df)
+			print(df)
+		except:
+			pass 
+		#New_valuesList.append(new_tags)
+		#NumbersList.append(numbers)
+
+		next_tab.click()
+	driver.quit()
+
+DistrictDict = {}
+DistrictDict['CongDist'] = CongDistList
+DistrictDict['State'] = StateList
+DistrictDict['Country'] = CountryList
+
+#print(pd.DataFrame.from_dict(DistrictDict))
+new_df = pd.concat(Df_list)
+print(new_df)
+new_df.to_csv('out.csv',sep='\t')
