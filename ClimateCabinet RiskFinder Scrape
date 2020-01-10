@@ -20,19 +20,19 @@ link_path = [
 	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(2) > a',
 	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(3) > a',
 	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(4) > a',
-	#'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(5) > a',
-	#'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(6) > a',
-	#'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(7) > a',
-	#'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(8) > a',
-	#'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(9) > a',
-	#'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(10) > a',
-	#'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(11) > a'
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(5) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(6) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(7) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(8) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(9) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(10) > a',
+	'#app > div > div:nth-child(2) > div > main > section > div > div:nth-child(22) > ul > li:nth-child(11) > a'
 ]
 
 lenvar = len(link_path)
 
 table = [ #all css selectors
-	'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(1)',
+	#'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(1)',
 	'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(2)',
 	'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(3)',
 	'#app > div > div:nth-child(2) > div > main > div:nth-child(6) > section > div > div > div > div:nth-child(1) > div.tab-group > h3:nth-child(4)',
@@ -53,6 +53,7 @@ table_values = []
 CongDistList = []
 CountryList = []
 StateList = []
+Df_list = []
 
 
 for i in range(0,lenvar):
@@ -143,6 +144,7 @@ for i in range(0,lenvar):
 		#print(tablesvals)
 		tablesvals = tablesvals.replace(',','')
 		#print(tablesvals)
+		#print(type(tablesvals))
 	
 		driver.implicitly_wait(10)
 
@@ -156,9 +158,19 @@ for i in range(0,lenvar):
 		tags = tags[1:-1]
 		new_new_tags = tags.replace("'","")
 		new_tags = new_new_tags.split(", ")
-		print([j for i  in zip(new_tags, numbers) for j in i])
-
-
+		#values = ([j for i  in zip(new_tags, numbers) for j in i])
+		#print(new_tags)
+		new_tags.append(CongDist)
+		numbers.append(State)
+		try:
+			df = pd.DataFrame(numbers)
+			df.index = new_tags
+			Df_list.append(df)
+			print(df)
+		except:
+			pass 
+		#New_valuesList.append(new_tags)
+		#NumbersList.append(numbers)
 
 		next_tab.click()
 	driver.quit()
@@ -168,12 +180,7 @@ DistrictDict['CongDist'] = CongDistList
 DistrictDict['State'] = StateList
 DistrictDict['Country'] = CountryList
 
-
-print(pd.DataFrame.from_dict(DistrictDict))
-
-
-
-
-
-
-
+#print(pd.DataFrame.from_dict(DistrictDict))
+new_df = pd.concat(Df_list)
+print(new_df)
+new_df.to_csv('out.csv',sep='\t')
