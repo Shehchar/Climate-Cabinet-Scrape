@@ -64,12 +64,16 @@ for i in range(0,lenvar):
 	driver.create_options()
 	driver.get("https://riskfinder.climatecentral.org/state-senate-district")
 	driver.implicitly_wait(10)
+	#try:
+	driver.implicitly_wait(10)
 	iframe = driver.find_element_by_class_name('ub-emb-iframe')
 	driver.switch_to.frame(iframe)
 	driver.implicitly_wait(10)
 	cookies = driver.find_element_by_xpath('//*[@id="lp-pom-button-28"]')
 	cookies.click()
 	driver.switch_to.default_content()
+	#except:
+		#pass
 	driver.execute_script("window.scrollTo(0, 11500)")
 	driver.implicitly_wait(10)
 	continue_link = driver.find_element_by_css_selector(str(link_path[i])) 
@@ -191,4 +195,3 @@ DistrictDict['Country'] = CountryList
 new_df = pd.concat(Df_list)
 print(new_df)
 new_df.to_csv('nextout.csv',sep='\t')
-
